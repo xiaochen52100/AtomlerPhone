@@ -83,7 +83,7 @@ public class Udp {
             }
 
             while (true) {
-                byte[] data = new byte[80];
+                byte[] data = new byte[100];
                 try {
 
                     dp = new DatagramPacket(data, data.length);

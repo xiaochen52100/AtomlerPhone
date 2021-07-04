@@ -23,22 +23,22 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public  SerialPortThread serialPortThread;
-    private long countdown1=0,countdown2=0,countdown3=0,countdown4=0;//设备倒计时时长
-    private int taskTime1=0,taskTime2=0,taskTime3=0,taskTime4=0;//设备定时时长
-    private int setTaskTime1=0,setTaskTime2=0,setTaskTime3=0,setTaskTime4=0;//设备定时时长
+    private long countdown1=0,countdown2=0;//设备倒计时时长
+    private int taskTime1=0,taskTime2=0;//设备定时时长
+    private int setTaskTime1=0,setTaskTime2=0;//设备定时时长
     private Timer timerTask;//计时器
-    private boolean state1=false,state2=false,state3=false,state4=false;//设备状态
+    private boolean state1=false,state2=false;//设备状态
     private byte sendData=0x20;
     private int temperature=25;
     private int humidity =60;
     private int level=90;
     /***********控件初始化*************/
     protected DashboardView tempDashboardView,humDashboardView,levelDashboard;
-    protected Button device1Button,device2Button,device3Button,device4Button;
-    protected TextView lastTime1,lastTime2,lastTime3,lastTime4;
+    protected Button device1Button,device2Button;
+    protected TextView lastTime1,lastTime2;
     protected CircleProgress mCpLoading;
-    protected MyNumberPicker np1,np2,np3,np4;
-    protected LineProView lineProView1,lineProView2,lineProView3,lineProView4;
+    protected MyNumberPicker np1,np2;
+    protected LineProView lineProView1,lineProView2;
     protected TextView temperatureTextView,humidityTextView;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -51,30 +51,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         device1Button=findViewById(R.id.device1Button);
         device2Button=findViewById(R.id.device2Button);
-        device3Button=findViewById(R.id.device3Button);
-        device4Button=findViewById(R.id.device4Button);
 
         lastTime1=findViewById(R.id.lastTime1);
         lastTime2=findViewById(R.id.lastTime2);
-        lastTime3=findViewById(R.id.lastTime3);
-        lastTime4=findViewById(R.id.lastTime4);
 
         np1 = findViewById(R.id.np1);
         np2 = findViewById(R.id.np2);
-        np3 = findViewById(R.id.np3);
-        np4 = findViewById(R.id.np4);
 
         lineProView1=findViewById(R.id.lineProView1);
         lineProView2=findViewById(R.id.lineProView2);
-        lineProView3=findViewById(R.id.lineProView3);
-        lineProView4=findViewById(R.id.lineProView4);
+
         temperatureTextView=findViewById(R.id.temperature);
         humidityTextView=findViewById(R.id.humidityTextView);
 
         device1Button.setOnClickListener(this);
         device2Button.setOnClickListener(this);
-        device3Button.setOnClickListener(this);
-        device4Button.setOnClickListener(this);
+
         temperatureTextView.setOnClickListener(this);
 
         np1.setMinValue(0);
@@ -109,38 +101,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        np3.setMinValue(0);
-        np3.setMaxValue(100);
-        np3.setValue(5);
-        np3.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-        setTaskTime3=np3.getValue();
-        Log.d("TAG","taskTime3：" + taskTime3);
-        np3.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-        np3.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            //当NunberPicker的值发生改变时，将会激发该方法
-            @Override
-            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                setTaskTime3=newVal;
-                //Log.d("TAG","oldVal：" + oldVal + "   newVal：" + newVal);
-            }
-        });
-
-        np4.setMinValue(0);
-        np4.setMaxValue(100);
-        np4.setValue(5);
-        np4.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-        setTaskTime4=np4.getValue();
-        Log.d("TAG","taskTime4：" + taskTime4);
-        np4.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-        np4.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            //当NunberPicker的值发生改变时，将会激发该方法
-            @Override
-            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                setTaskTime4=newVal;
-                //Log.d("TAG","oldVal：" + oldVal + "   newVal：" + newVal);
-            }
-        });
-
         mCpLoading = findViewById(R.id.cp_loading);
         //mCpLoading.setProgress(100,5000);
         mCpLoading.setProgress(90);
@@ -151,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
         mCpLoading.setOnClickListener(this);
+        new Udp.udpReceiveBroadCast(mHandler).start();
 //        if (timerTask==null){
 //            timerTask = new Timer(true);
 //            timerTask.schedule(countTask, 500, 1000);
@@ -203,38 +164,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 byte[] sendBuf={0x25};
                 //serialPortThread.sendSerialPort(sendBuf);
             }
-            TaskData taskData3=new TaskData();
-            if (currentTime>=countdown3){//结束
-                sendData=(byte)(sendData&(~0x04));
-                state3=false;
-                sendHandler(3,taskData3);
-            }else{//进行中
-                sendData=(byte)(sendData|0x04);
-                double progess=((double) (countdown3-currentTime))/(double)(taskTime3*60*1000);
-                //Log.v("tag","progess:"+progess+"  "+(countdown1-currentTime)+"  "+(taskTime1*60*1000));
-                taskData3.setProgess(progess);
-                int time= (int) ((countdown3-currentTime)/1000);
-                taskData3.setLastTime(time);
-                sendHandler(3,taskData3);
-                byte[] sendBuf={0x25};
-                //serialPortThread.sendSerialPort(sendBuf);
-            }
-            TaskData taskData4=new TaskData();
-            if (currentTime>=countdown4){//结束
-                sendData=(byte)(sendData&(~0x08));
-                state4=false;
-                sendHandler(4,taskData4);
-            }else{//进行中
-                sendData=(byte)(sendData|0x08);
-                double progess=((double) (countdown4-currentTime))/(double)(taskTime4*60*1000);
-                //Log.v("tag","progess:"+progess+"  "+(countdown1-currentTime)+"  "+(taskTime1*60*1000));
-                taskData4.setProgess(progess);
-                int time= (int) ((countdown4-currentTime)/1000);
-                taskData4.setLastTime(time);
-                sendHandler(4,taskData4);
-                byte[] sendBuf={0x25};
-                //serialPortThread.sendSerialPort(sendBuf);
-            }
 
             byte[] sendBuf={0};
             sendBuf[0]=sendData;
@@ -254,14 +183,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             System.arraycopy(DateForm.intToBytesArray(taskTime2),0,udpSendBuf,32,4);
             System.arraycopy(DateForm.intToBytesArray(taskData2.getLastTime()),0,udpSendBuf,36,4);
             System.arraycopy(DateForm.doubleToByteArray(taskData2.getProgess()),0,udpSendBuf,40,8);
-
-            System.arraycopy(DateForm.intToBytesArray(taskTime3),0,udpSendBuf,48,4);
-            System.arraycopy(DateForm.intToBytesArray(taskData3.getLastTime()),0,udpSendBuf,52,4);
-            System.arraycopy(DateForm.doubleToByteArray(taskData3.getProgess()),0,udpSendBuf,56,8);
-
-            System.arraycopy(DateForm.intToBytesArray(taskTime4),0,udpSendBuf,64,4);
-            System.arraycopy(DateForm.intToBytesArray(taskData4.getLastTime()),0,udpSendBuf,68,4);
-            System.arraycopy(DateForm.doubleToByteArray(taskData4.getProgess()),0,udpSendBuf,72,8);
             new Udp.udpSendBroadCast(udpSendBuf).start();
             //Log.d("TAG", Arrays.toString(udpSendBuf));
 
@@ -337,15 +258,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     taskData2.setLastTime(DateForm.byteArrayToInt(LastTime2Byte)); //;
                     taskData2.setProgess(100-DateForm.byteArrayToDouble(Progess2Byte,0)*100);
                     Log.d("TAG","getLastTime2:"+taskData2.getLastTime());
-                    TaskData taskData3=new TaskData();
-                    taskTime3=DateForm.byteArrayToInt(taskTime3Byte);
-                    taskData3.setLastTime(DateForm.byteArrayToInt(LastTime3Byte)); //;
-                    taskData3.setProgess(100-DateForm.byteArrayToDouble(Progess3Byte,0)*100);
 
-                    TaskData taskData4=new TaskData();
-                    taskTime4=DateForm.byteArrayToInt(taskTime4Byte);
-                    taskData4.setLastTime(DateForm.byteArrayToInt(LastTime4Byte)); //;
-                    taskData4.setProgess(100-DateForm.byteArrayToDouble(Progess4Byte,0)*100);
 
                     if ((sendData & 1) == 1){
                         lineProView1.setProgress(taskData1.getProgess());
@@ -373,34 +286,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         lastTime2.setText("00:00");
                         device2Button.setText("开始");
                         state2=false;
-                    }
-
-                    if ((sendData & 0x04) == 0x04){
-                        lineProView3.setProgress(taskData3.getProgess());
-                        String minutes=String.format("%0" + 2 + "d", taskData3.getLastTime()/60);
-                        String second=String.format("%0" + 2 + "d", ((int)taskData3.getLastTime()%60));
-                        lastTime3.setText(minutes+":"+second);
-                        device3Button.setText("停止");
-                        state3=true;
-                    }else{
-                        lineProView3.setProgress(0);
-                        lastTime3.setText("00:00");
-                        device3Button.setText("开始");
-                        state3=false;
-                    }
-
-                    if ((sendData & 0x08) == 0x08){
-                        lineProView4.setProgress(taskData1.getProgess());
-                        String minutes=String.format("%0" + 2 + "d", taskData4.getLastTime()/60);
-                        String second=String.format("%0" + 2 + "d", ((int)taskData4.getLastTime()%60));
-                        lastTime4.setText(minutes+":"+second);
-                        device4Button.setText("停止");
-                        state4=true;
-                    }else{
-                        lineProView4.setProgress(0);
-                        lastTime4.setText("00:00");
-                        device4Button.setText("开始");
-                        state4=false;
                     }
 
 
@@ -454,45 +339,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new Udp.udpSendBroadCast(sendBuf).start();
                 }
                 break;
-            case R.id.device3Button:
-                if (!state3){
-                    byte[] sendBuf=new byte[5];
-                    device3Button.setText("停止");
-                    sendBuf[0]=3;
-                    System.arraycopy(DateForm.intToBytesArray(setTaskTime3),0,sendBuf,1,4);
-                    state3=true;
-                    new Udp.udpSendBroadCast(sendBuf).start();
-                }else {
-                    byte[] sendBuf=new byte[5];
-                    device3Button.setText("开始");
-                    sendBuf[0]=3;
-                    System.arraycopy(DateForm.intToBytesArray(0),0,sendBuf,1,4);
-                    state3=false;
-                    new Udp.udpSendBroadCast(sendBuf).start();
-                }
-                break;
-            case R.id.device4Button:
-                if (!state4){
-                    byte[] sendBuf=new byte[5];
-                    device4Button.setText("停止");
-                    sendBuf[0]=4;
-                    System.arraycopy(DateForm.intToBytesArray(setTaskTime4),0,sendBuf,1,4);
-                    state4=true;
-                    new Udp.udpSendBroadCast(sendBuf).start();
-                }else {
-                    byte[] sendBuf=new byte[5];
-                    device4Button.setText("开始");
-                    sendBuf[0]=4;
-                    System.arraycopy(DateForm.intToBytesArray(0),0,sendBuf,1,4);
-                    state4=false;
-                    new Udp.udpSendBroadCast(sendBuf).start();
-                }
-
-                break;
             case R.id.cp_loading:
                 //Log.d("TAG","hello");
                 //new Udp.udpSendBroadCast("hello").start();
-                new Udp.udpReceiveBroadCast(mHandler).start();
+//                new Udp.udpReceiveBroadCast(mHandler).start();
                 break;
             case R.id.temperature:
                 //new Udp.udpReceiveBroadCast().start();

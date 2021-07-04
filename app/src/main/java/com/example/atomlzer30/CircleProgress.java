@@ -38,7 +38,7 @@ public class CircleProgress extends View {
     //当前波浪的进度
     private int progress = 0;
     //当前波浪的速度
-    private int waveSpeech = 80;
+    private int waveSpeech = 10;
     //是否启用了自动增长进度
     private boolean isAutoIncrease = false;
     protected OnCircleProgressListener onCircleProgressListener;
